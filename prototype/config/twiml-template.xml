@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Dial>
+    <Sip username="your_sip_username" password="your_secure_password_here">
+      sip:+1234567890@your-sip-endpoint.livekit.cloud
+    </Sip>
+  </Dial>
+</Response>

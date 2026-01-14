@@ -1,0 +1,7 @@
+{
+  "trunk": {
+    "name": "Twilio Inbound Trunk",
+    "auth_username": "your_sip_username",
+    "auth_password": "your_secure_password_here"
+  }
+}
