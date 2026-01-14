@@ -1,3 +1,7 @@
 livekit
 livekit-api
+livekit-agents
+livekit-plugins-deepgram
+livekit-plugins-openai
+livekit-plugins-cartesia
 python-dotenv
