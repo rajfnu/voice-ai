@@ -75,21 +75,20 @@ open http://localhost:3000
 - Production deployment
 - Phone call integration via Twilio
 - LiveKit Cloud hosting
-- MCP backend integrations (ServiceNow, booking, calendar)
 - Scalable multi-user deployments
 
 **Contains:**
-- ✅ Everything from local branch
+- ✅ `voice_agent.py` - Basic agent for web client testing
 - ✅ `voice_agent_telephony.py` - Telephony-enabled agent
-- ✅ `voice_agent_mcp.py` - Agent with MCP backend integrations
+- ✅ `test_livekit.py` - Connectivity tests
+- ✅ `test_voice_agent.py` - Voice agent validation
 - ✅ `LIVEKIT_CLOUD_SETUP.md` - Complete cloud setup guide
 - ✅ `TWILIO_SETUP.md` - Twilio integration guide
-- ✅ `MCP_INTEGRATION.md` - Backend system integration guide
-- ✅ `MCP_QUICK_START.md` - Quick reference for MCP
-- ✅ `config/cloud-inbound-trunk.json` - SIP trunk configuration
+- ✅ `config/inbound-trunk.json` - SIP trunk configuration template
 - ✅ `config/dispatch-rule.json` - Agent dispatch rules
-- ✅ `config/dispatch-rule-mcp.json` - MCP agent dispatch rules
-- ✅ `config/twilio-twiml-configured.xml` - TwiML configuration
+- ✅ `config/twiml-template.xml` - TwiML configuration template
+- ✅ `.env.example` - Template with cloud configuration
+- ✅ `README.md` - Setup instructions
 
 **Configuration:**
 ```bash
@@ -101,17 +100,6 @@ LIVEKIT_API_SECRET=your_secret
 DEEPGRAM_API_KEY=your_key
 OPENAI_API_KEY=your_key
 CARTESIA_API_KEY=your_key
-
-# Backend integrations (optional, for MCP)
-SERVICENOW_INSTANCE_URL=https://your-instance.service-now.com
-SERVICENOW_USERNAME=your_username
-SERVICENOW_PASSWORD=your_password
-
-BOOKING_SYSTEM_URL=https://api.yourbooking.com
-BOOKING_SYSTEM_API_KEY=your_api_key
-
-CALENDAR_TYPE=google
-CALENDAR_API_CREDENTIALS=/path/to/credentials.json
 ```
 
 **How to use:**
@@ -127,19 +115,13 @@ cd prototype
 source venv/bin/activate
 python voice_agent_telephony.py start
 
-# Or run MCP-enabled agent
-python voice_agent_mcp.py start
-
 # Call your Twilio number to test
 ```
 
-**What's EXTRA in this branch:**
-- ✅ Twilio SIP integration
-- ✅ LiveKit Cloud setup
-- ✅ Phone call handling
-- ✅ MCP backend integrations
-- ✅ Production deployment guides
-- ✅ SIP trunk and dispatch configurations
+**What's NOT in this branch:**
+- ❌ Local Docker setup (docker-compose.yml)
+- ❌ MCP backend integrations
+- ❌ Local development files
 
 ---
 
@@ -156,8 +138,8 @@ python voice_agent_mcp.py start
 1. **Production deployment** - Serving real users
 2. **Phone integration** - Need Twilio/SIP connectivity
 3. **Scalability** - Multiple concurrent users
-4. **Backend integration** - Connecting to ServiceNow, booking systems, calendars
-5. **Public access** - Sharing with users outside your local network
+4. **Public access** - Sharing with users outside your local network
+5. **Cloud infrastructure** - Leveraging LiveKit Cloud's managed services
 
 ---
 
@@ -210,14 +192,14 @@ python voice_agent.py dev
 |------|--------------|--------------|---------|
 | `voice_agent.py` | ✅ | ✅ | Basic agent (web clients) |
 | `voice_agent_telephony.py` | ❌ | ✅ | Telephony-enabled agent |
-| `voice_agent_mcp.py` | ❌ | ✅ | MCP backend integrations |
-| `docker-compose.yml` | ✅ | ✅ | Local LiveKit server |
-| `config/cloud-inbound-trunk.json` | ❌ | ✅ | SIP trunk config |
+| `docker-compose.yml` | ✅ | ❌ | Local LiveKit server |
+| `config/inbound-trunk.json` | ❌ | ✅ | SIP trunk config template |
 | `config/dispatch-rule.json` | ❌ | ✅ | Agent dispatch rules |
+| `config/twiml-template.xml` | ❌ | ✅ | TwiML configuration |
 | `LIVEKIT_CLOUD_SETUP.md` | ❌ | ✅ | Cloud setup guide |
 | `TWILIO_SETUP.md` | ❌ | ✅ | Twilio integration guide |
-| `MCP_INTEGRATION.md` | ❌ | ✅ | MCP integration guide |
 | `test_livekit.py` | ✅ | ✅ | Connection tests |
+| `test_voice_agent.py` | ✅ | ✅ | Agent validation tests |
 | `README.md` | ✅ | ✅ | Basic setup instructions |
 
 ---
@@ -246,17 +228,17 @@ python voice_agent_telephony.py start
 git push
 ```
 
-### Workflow 2: Add Cloud-Only Feature (MCP Integration)
+### Workflow 2: Add Cloud-Only Feature (Telephony Enhancement)
 
 ```bash
 # Work directly on cloud branch
 git checkout feature/livekit-cloud-telephony
 
-# Add MCP integration
-# ... modify voice_agent_mcp.py ...
+# Enhance telephony features
+# ... modify voice_agent_telephony.py ...
 
 git add .
-git commit -m "Add ServiceNow integration"
+git commit -m "Add call transfer feature"
 git push
 
 # Local branch remains unchanged
@@ -290,7 +272,6 @@ aa00a0d - Add LiveKit prototype for local testing
 
 ### feature/livekit-cloud-telephony
 ```
-2804699 - Add MCP integration for backend systems
 4311e05 - Add LiveKit Cloud integration with SIP telephony support
 0f1b81a - Add Twilio telephony integration for phone calls
 6e41c70 - Implement working voice agent with full STT-LLM-TTS pipeline
