@@ -1,18 +1,62 @@
-version: '3.9'
-
 services:
+  redis:
+    image: redis:alpine
+    container_name: livekit-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - livekit-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
   livekit:
     image: livekit/livekit-server:latest
-    command: --config /etc/livekit.yaml
+    container_name: livekit-server
+    command: --dev --redis-host redis:6379
     ports:
-      - "7880:7880"  # HTTP
+      - "7880:7880"  # HTTP/WebSocket
       - "7881:7881"  # TURN/UDP
-      - "7882:7882"  # TURN/TLS
+      - "50000-50100:50000-50100/udp"  # RTC ports
     volumes:
       - ./livekit.yaml:/etc/livekit.yaml
     networks:
       - livekit-net
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  sip:
+    image: livekit/sip:latest
+    container_name: livekit-sip
+    ports:
+      - "5060:5060/udp"  # SIP signaling
+      - "10000-10100:10000-10100/udp"  # RTP media
+    networks:
+      - livekit-net
+    depends_on:
+      livekit:
+        condition: service_started
+    environment:
+      SIP_CONFIG_BODY: |
+        api_key: 'devkey'
+        api_secret: 'secret'
+        ws_url: 'ws://livekit:7880'
+        redis:
+          address: 'redis:6379'
+        sip_port: 5060
+        rtp_port: 10000-10100
+        use_external_ip: true
+        logging:
+          level: debug
 
 networks:
   livekit-net:
     driver: bridge
+
+volumes:
+  redis_data:
