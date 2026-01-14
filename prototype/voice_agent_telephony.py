@@ -9,7 +9,7 @@ import os
 from dotenv import load_dotenv
 from livekit import agents
 from livekit.agents import Agent, AgentServer, AgentSession
-from livekit.plugins import silero, deepgram, openai, cartesia
+from livekit.plugins import silero, openai, cartesia
 
 # Load environment variables
 load_dotenv()
@@ -54,7 +54,7 @@ async def voice_agent(ctx: agents.JobContext):
 
     # Create the agent session with STT, LLM, and TTS using direct plugins
     session = AgentSession(
-        stt=deepgram.STT(),  # Speech-to-Text (Deepgram) - uses DEEPGRAM_API_KEY
+        stt=cartesia.STT(),  # Speech-to-Text (Cartesia) - uses CARTESIA_API_KEY
         llm=openai.LLM(model="gpt-4o"),  # Large Language Model (OpenAI) - uses OPENAI_API_KEY
         tts=cartesia.TTS(),  # Text-to-Speech (Cartesia) - uses CARTESIA_API_KEY
         vad=silero.VAD.load(),  # Voice Activity Detection
@@ -88,7 +88,6 @@ def main():
         "LIVEKIT_URL",
         "LIVEKIT_API_KEY",
         "LIVEKIT_API_SECRET",
-        "DEEPGRAM_API_KEY",
         "OPENAI_API_KEY",
         "CARTESIA_API_KEY",
     ]
