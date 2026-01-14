@@ -4,4 +4,5 @@ livekit-agents
 livekit-plugins-deepgram
 livekit-plugins-openai
 livekit-plugins-cartesia
+livekit-plugins-silero
 python-dotenv

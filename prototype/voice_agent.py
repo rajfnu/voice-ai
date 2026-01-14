@@ -2,20 +2,15 @@
 """
 Simple Voice AI Agent Prototype
 Demonstrates STT → LLM → TTS pipeline with LiveKit
+Based on official LiveKit Agents documentation
 """
 
-import asyncio
 import logging
 import os
 from dotenv import load_dotenv
-from livekit import agents, rtc
-from livekit.agents import (
-    AutoSubscribe,
-    JobContext,
-    WorkerOptions,
-    cli,
-)
-from livekit.plugins import deepgram, openai, cartesia
+from livekit import agents
+from livekit.agents import Agent, AgentServer, AgentSession
+from livekit.plugins import silero, deepgram, openai, cartesia
 
 # Load environment variables
 load_dotenv()
@@ -25,38 +20,48 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-async def entrypoint(ctx: JobContext):
+class VoiceAssistant(Agent):
+    """Custom voice assistant agent"""
+
+    def __init__(self) -> None:
+        super().__init__(
+            instructions="""You are a friendly voice assistant.
+            Keep your responses concise and natural.
+            You're here to help answer questions and have a conversation.
+            Your responses are to the point, without complex formatting or emojis."""
+        )
+
+
+# Create the agent server
+server = AgentServer()
+
+
+@server.rtc_session()
+async def voice_agent(ctx: agents.JobContext):
     """
     Main entrypoint for the voice agent.
     This runs when a participant joins a LiveKit room.
     """
     logger.info(f"Starting voice agent for room: {ctx.room.name}")
 
-    # Connect to the room
-    await ctx.connect(auto_subscribe=AutoSubscribe.AUDIO_ONLY)
-
-    # Create the voice assistant with STT, LLM, and TTS
-    assistant = agents.VoiceAssistant(
-        vad=agents.silero.VAD.load(),  # Voice Activity Detection
-        stt=deepgram.STT(),  # Speech-to-Text (Deepgram)
-        llm=openai.LLM(model="gpt-4o"),  # Large Language Model (OpenAI)
-        tts=cartesia.TTS(),  # Text-to-Speech (Cartesia)
-        chat_ctx=agents.ChatContext().append(
-            role="system",
-            text=(
-                "You are a friendly voice assistant. "
-                "Keep your responses concise and natural. "
-                "You're here to help answer questions and have a conversation."
-            ),
-        ),
+    # Create the agent session with STT, LLM, and TTS using direct plugins
+    session = AgentSession(
+        stt=deepgram.STT(),  # Speech-to-Text (Deepgram) - uses DEEPGRAM_API_KEY
+        llm=openai.LLM(model="gpt-4o"),  # Large Language Model (OpenAI) - uses OPENAI_API_KEY
+        tts=cartesia.TTS(),  # Text-to-Speech (Cartesia) - uses CARTESIA_API_KEY
+        vad=silero.VAD.load(),  # Voice Activity Detection
     )
 
-    # Start the assistant
-    assistant.start(ctx.room)
+    # Start the session
+    await session.start(
+        room=ctx.room,
+        agent=VoiceAssistant(),
+    )
 
-    # Greet the user when they join
-    await asyncio.sleep(1)  # Small delay to ensure audio is ready
-    await assistant.say("Hello! I'm your voice assistant. How can I help you today?")
+    # Generate initial greeting
+    await session.generate_reply(
+        instructions="Greet the user and offer your assistance."
+    )
 
     logger.info("Voice assistant is now active and ready")
 
@@ -81,12 +86,8 @@ def main():
         logger.error("Please copy .env.example to .env and add your API keys")
         return
 
-    # Start the worker
-    cli.run_app(
-        WorkerOptions(
-            entrypoint_fnc=entrypoint,
-        ),
-    )
+    # Start the agent server
+    agents.cli.run_app(server)
 
 
 if __name__ == "__main__":
