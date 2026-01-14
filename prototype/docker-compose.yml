@@ -1,0 +1,18 @@
+version: '3.9'
+
+services:
+  livekit:
+    image: livekit/livekit-server:latest
+    command: --config /etc/livekit.yaml
+    ports:
+      - "7880:7880"  # HTTP
+      - "7881:7881"  # TURN/UDP
+      - "7882:7882"  # TURN/TLS
+    volumes:
+      - ./livekit.yaml:/etc/livekit.yaml
+    networks:
+      - livekit-net
+
+networks:
+  livekit-net:
+    driver: bridge

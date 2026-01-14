@@ -1,2 +1,20 @@
 .DS_Store
 .claude/settings.local.json
+
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg-info/
+
+# Environment variables
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
