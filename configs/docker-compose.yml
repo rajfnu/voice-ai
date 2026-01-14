@@ -1,0 +1,110 @@
+# Docker Compose - Local Development
+# Run all Voice AI Platform services locally on Mac
+
+version: '3.8'
+
+services:
+  # ============== Database ==============
+  postgres:
+    image: postgres:16-alpine
+    container_name: vai-dev-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: voice_ai_platform
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: vai-dev-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_dev_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ============== LightRAG ==============
+  lightrag:
+    image: lightrag:local
+    build:
+      context: ./src/lightrag
+      dockerfile: Dockerfile.dev
+    container_name: vai-dev-lightrag
+    environment:
+      - WEBUI_TITLE=Voice AI Knowledge Base (Dev)
+      - AUTH_ACCOUNTS=admin:admin123
+      - LIGHTRAG_API_KEY=dev-lightrag-api-key-12345678901234567890
+      # LLM - Using OpenRouter for flexibility
+      - LLM_BINDING=openai
+      - LLM_MODEL=google/gemini-flash-1.5
+      - LLM_BASE_URL=https://openrouter.ai/api/v1
+      - LLM_API_KEY=${OPENROUTER_API_KEY:-${OPENAI_API_KEY}}
+      # Embeddings - Local Ollama
+      - EMBEDDING_BINDING=ollama
+      - EMBEDDING_MODEL=bge-m3:latest
+      - EMBEDDING_BASE_URL=http://host.docker.internal:11434
+      # Reranker - Local Ollama
+      - RERANK_BINDING=ollama
+      - RERANK_MODEL=bge-reranker-v2-m3
+      - RERANK_BASE_URL=http://host.docker.internal:11434
+    ports:
+      - "9621:9621"
+    volumes:
+      - lightrag_dev_data:/app/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # ============== n8n ==============
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: vai-dev-n8n
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=admin123
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=http://localhost:5678/
+      - GENERIC_TIMEZONE=Australia/Sydney
+      # For workflow environment variables
+      - LIGHTRAG_URL=http://lightrag:9621
+      - LIGHTRAG_API_KEY=dev-lightrag-api-key-12345678901234567890
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8n_dev_data:/home/node/.n8n
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # ============== LiveKit ==============
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: vai-dev-livekit
+    command: --dev --bind 0.0.0.0
+    environment:
+      - LIVEKIT_KEYS=devkey:devsecret0123456789012345678901234567890
+    ports:
+      - "7880:7880"
+      - "7881:7881"
+      - "7882:7882/udp"
+    depends_on:
+      - redis
+
+volumes:
+  postgres_dev_data:
+  redis_dev_data:
+  lightrag_dev_data:
+  n8n_dev_data:
