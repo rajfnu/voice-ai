@@ -1,0 +1,10 @@
+{
+  "dispatchRuleDirect": {
+    "roomName": "call-_<caller>_<random>",
+    "pin": ""
+  },
+  "hidePhoneNumber": false,
+  "name": "Inbound Calls",
+  "attributes": {},
+  "agentName": "telephony-agent"
+}

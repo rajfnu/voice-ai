@@ -1,0 +1,10 @@
+{
+  "rule": {
+    "dispatchRuleDirect": {
+      "roomName": "call-_<caller>_<random>",
+      "pin": ""
+    },
+    "trunks": ["ST_N8mmUzK2obs2"],
+    "agentName": "telephony-agent"
+  }
+}
